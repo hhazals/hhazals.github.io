@@ -170,7 +170,6 @@
             padding: 10px;
             border: 1px solid #ccc;
         }
-
     </style>
 </head>
 <body>
@@ -281,12 +280,6 @@
                 seatDiv.appendChild(seatImg);
                 seatDiv.appendChild(seatNumber);
                 layout.appendChild(seatDiv);
-
-                if ((index + 1) % 2 === 0 && index < seatLayout.length - 1) {
-                    const separatorDiv = document.createElement('div');
-                    separatorDiv.className = 'separator';
-                    layout.appendChild(separatorDiv);
-                }
             });
         }
 
