@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Khas Library Reservation System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: white;
+            color: #014f93; /* KHAS blue */
+        }
+
+        nav {
+            background-color: #014f93;
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+            font-size: 20px;
+        }
+
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        nav ul li {
+            display: inline;
+            margin-right: 15px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .logo {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            height: 84px;
+        }
+
+        .seat-layout {
+            display: grid;
+            grid-template-columns: repeat(6, 50px);
+            gap: 20px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .seat {
+            position: relative;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+        }
+
+        .seat img {
+            width: 100%;
+            height: 100%;
+        }
+
+        .seat-number {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            color: black;
+        }
+
+        .seat.taken .seat-number {
+            color: rgb(236, 92, 92);
+        }
+
+        .popup, .confirmation {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 1000;
+            max-height: 80%;
+            overflow-y: auto;
+            width: 80%;
+            text-align: center; 
+        }
+
+        .popup h3, .confirmation h3 {
+            margin: 0 0 20px 0;
+            text-align: center;
+        }
+
+        .popup button, .confirmation button {
+            margin: 10px;
+        }
+
+        .popup .close, .confirmation .close {
+            float: right;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .popup table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+
+        .popup th, .popup td {
+            border: 1px solid black;
+            padding: 10px;
+        }
+
+        .popup th {
+            background-color: #f4f4f4;
+        }
+
+        .popup .available {
+            background-color: rgb(175, 234, 175);
+            color: black;
+            cursor: pointer;
+        }
+
+        .popup .unavailable {
+            background-color: rgb(228, 134, 134);
+            color: white;
+            cursor: not-allowed;
+        }
+
+        .selected {
+            background-color: rgb(249, 249, 178) !important;
+            color: black !important;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        #reservations {
+            margin: 20px;
+        }
+
+        #reservations ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #reservations ul li {
+            margin: 5px 0;
+            background: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <img src="logo.png" alt="Logo" class="logo">
+        <ul>
+            <li><a href="#" onclick="showMainPage()">Main Page</a></li>
+            <li><a href="#" onclick="showReservationsPage()">My Reservations</a></li>
+            <li><a href="#">Rules/Help</a></li>
+        </ul>
+    </nav>
+
+    <div id="mainPage">
+        <h1 style="text-align: center;">Khas Seat Reservation</h1>
+        <label for="date" style="display: block; text-align: center;">Select Date to Display Layout:</label>
+        <div style="display: flex; justify-content: center;">
+            <input type="date" id="date" onchange="showSeats()">
+        </div>
+
+        <div id="seatLayout" class="seat-layout"></div>
+
+        <div id="popup" class="popup">
+            <span class="close" onclick="closePopup()">&times;</span>
+            <h3 id="popupTitle">Select Timeslots</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timeslot</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="timetable"></tbody>
+            </table>
+            <button onclick="showConfirmation()">Confirm Selected Slots</button>
+            <button onclick="closePopup()">Cancel</button>
+        </div>
+
+        <div id="confirmation" class="confirmation">
+            <h3>Confirm Reservation</h3>
+            <p id="confirmationText"></p>
+            <div class="confirmation-buttons">
+                <button onclick="confirmReservation()">OK</button>
+                <button onclick="cancelReservation()">Cancel</button>
+            </div>
+        </div>
+
+        <div id="overlay" class="overlay"></div>
+    </div>
+
+    <div id="reservations" style="display: none;">
+        <h1 style="text-align: center;">My Reservations</h1>
+        <ul id="reservationsList"></ul>
+        <p class="endnote">Please arrive on time! Be mindful of the end time to respect other reservers. Do not leave your belongings or trash behind.</p>
+    </div>
+
+    <script>
+        const seatLayout = [
+            1, 2, 3, 4, 5, 6,
+            7, 8, 9, 10, 11, 12,
+            13, 14, 15, 16, 17, 18
+        ];
+
+        const timeslots = Array.from({ length: 27 }, (_, i) => {
+            const start = 8 * 60 + 30 + i * 30;
+            const end = start + 30;
+            const startTime = `${Math.floor(start / 60)}:${(start % 60).toString().padStart(2, '0')}`;
+            const endTime = `${Math.floor(end / 60)}:${(end % 60).toString().padStart(2, '0')}`;
+            return `${startTime}-${endTime}`;
+        });
+
+        const seatData = Array.from({ length: 18 }, () => ({}));
+        const reservations = [];
+        let selectedSeatIndex = null;
+
+        function showSeats() {
+            const layout = document.getElementById('seatLayout');
+            layout.innerHTML = '';
+            layout.style.display = 'grid';
+
+            seatLayout.forEach((seat, index) => {
+                const seatDiv = document.createElement('div');
+                seatDiv.className = 'seat';
+                const seatImg = document.createElement('img');
+                seatImg.src = index % 2 === 0 ? 'left.png' : 'right.png';
+                seatImg.alt = `Seat ${seat}`;
+
+                const seatNumber = document.createElement('div');
+                seatNumber.className = 'seat-number';
+                seatNumber.innerText = `S${seat}`;
+
+                const allTaken = timeslots.every(timeslot => seatData[index][timeslot]);
+                if (allTaken) {
+                    seatDiv.classList.add('taken');
+                }
+
+                seatDiv.onclick = () => showPopup(index);
+                seatDiv.appendChild(seatImg);
+                seatDiv.appendChild(seatNumber);
+                layout.appendChild(seatDiv);
+            });
+        }
+
+        function showPopup(seatIndex) {
+            const popup = document.getElementById('popup');
+            const overlay = document.getElementById('overlay');
+            const timetable = document.getElementById('timetable');
+            const dateInput = document.getElementById('date');
+            const popupTitle = document.getElementById('popupTitle');
+
+            if (!dateInput.value) {
+                alert("Please select a date first.");
+                return;
+            }
+
+            selectedSeatIndex = seatIndex;
+            timetable.innerHTML = '';
+            const selectedDate = new Date(dateInput.value);
+            const dayOfWeek = selectedDate.getDay();
+            const formattedDate = `${selectedDate.getDate().toString().padStart(2, '0')}/${(selectedDate.getMonth() + 1).toString().padStart(2, '0')}/${selectedDate.getFullYear()}`;
+
+            popupTitle.innerText = `Timeslots for Seat ${seatIndex + 1} on ${formattedDate}`;
+
+            timeslots.forEach((time, index) => {
+                const row = document.createElement('tr');
+                const timeCell = document.createElement('td');
+                const statusCell = document.createElement('td');
+
+                timeCell.innerText = time;
+                const isUnavailableTime = (dayOfWeek === 0 || dayOfWeek === 6) && index < 3;
+
+                if (isUnavailableTime || seatData[seatIndex][time]) {
+                    statusCell.innerText = 'Unavailable';
+                    statusCell.className = 'unavailable';
+                } else {
+                    statusCell.innerText = 'Available';
+                    statusCell.className = 'available';
+                    statusCell.onclick = () => {
+                        statusCell.classList.toggle('selected');
+                        statusCell.innerText = statusCell.classList.contains('selected') ? 'Selected' : 'Available';
+                    };
+                }
+
+                row.appendChild(timeCell);
+                row.appendChild(statusCell);
+                timetable.appendChild(row);
+            });
+
+            popup.style.display = 'block';
+            overlay.style.display = 'block';
+        }
+
+        function showConfirmation() {
+            const selectedTimeslots = Array.from(document.querySelectorAll('.selected'))
+                .map(slot => slot.previousElementSibling.innerText);
+
+            if (selectedTimeslots.length === 0) {
+                alert("No timeslots selected.");
+                return;
+            }
+
+            const confirmationText = document.getElementById('confirmationText');
+            const date = document.getElementById('date').value;
+            confirmationText.innerText = `Confirm reservation for ${date}, Timeslots: ${selectedTimeslots.join(', ')}, Seat: ${selectedSeatIndex + 1}`;
+            document.getElementById('popup').style.display = 'none';
+            document.getElementById('confirmation').style.display = 'block';
+        }
+
+        function confirmReservation() {
+            const selectedTimeslots = Array.from(document.querySelectorAll('.selected'))
+                .map(slot => slot.previousElementSibling.innerText);
+            const date = document.getElementById('date').value;
+
+            selectedTimeslots.forEach(timeslot => {
+                seatData[selectedSeatIndex][timeslot] = true;
+                reservations.push(`Date: ${date}, Timeslot: ${timeslot}, Seat: ${selectedSeatIndex + 1}`);
+            });
+
+            alert("Reservation confirmed!");
+            document.getElementById('confirmation').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+            showSeats();
+        }
+
+        function cancelReservation() {
+            document.getElementById('confirmation').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+            showSeats();
+        }
+
+        function closePopup() {
+            document.getElementById('popup').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+            showSeats();
+        }
+
+        function showReservationsPage() {
+            document.getElementById('mainPage').style.display = 'none';
+            const reservationsPage = document.getElementById('reservations');
+            reservationsPage.style.display = 'block';
+
+            const reservationsList = document.getElementById('reservationsList');
+            reservationsList.innerHTML = '';
+
+            reservations.forEach(reservation => {
+                const li = document.createElement('li');
+                li.innerText = reservation;
+                reservationsList.appendChild(li);
+            });
+        }
+
+        function showMainPage() {
+            document.getElementById('mainPage').style.display = 'block';
+            document.getElementById('reservations').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
