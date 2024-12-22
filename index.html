@@ -170,6 +170,18 @@
             padding: 10px;
             border: 1px solid #ccc;
         }
+
+        .separator {
+            width: 50px;
+            height: 50px;
+            background-color: white;
+            border: 2px solid black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: auto;
+        }
+
     </style>
 </head>
 <body>
@@ -280,6 +292,12 @@
                 seatDiv.appendChild(seatImg);
                 seatDiv.appendChild(seatNumber);
                 layout.appendChild(seatDiv);
+
+                if ((index + 1) % 2 === 0 && index < seatLayout.length - 1) {
+                    const separatorDiv = document.createElement('div');
+                    separatorDiv.className = 'separator';
+                    layout.appendChild(separatorDiv);
+                }
             });
         }
 
