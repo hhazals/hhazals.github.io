@@ -174,7 +174,7 @@
         <ul>
             <li><a href="#" onclick="showMainPage()">Main Page</a></li>
             <li><a href="#" onclick="showReservationsPage()">My Reservations</a></li>
-            <li><a href="#">Rules/Help</a></li>
+            <li><a href="#" onclick="showRulesPage()">Rules/Help</a></li>
         </ul>
     </nav>
 
@@ -219,6 +219,13 @@
         <h1 style="text-align: center;">My Reservations</h1>
         <ul id="reservationsList"></ul>
         <p class="endnote">Please arrive on time! Be mindful of the end time to respect other reservers. Do not leave your belongings or trash behind.</p>
+    </div>
+
+    <div id="rules" style="display: none;">
+        <h1>Library Rules</h1>
+        <p>1. Conduct not conducive to the proper use of the library is forbidden.</p>
+        <p>2. Noise, disturbance or unruly behaviour is forbidden in any part of the library.</p>
+        <p>3. Smoking, food and drinks are not allowed in the library.</p>
     </div>
 
     <script>
@@ -380,6 +387,12 @@
             document.getElementById('mainPage').style.display = 'block';
             document.getElementById('reservations').style.display = 'none';
         }
+
+        function showRulesPage() {
+            document.getElementById('mainPage').style.display = 'none';
+            document.getElementById('reservations').style.display = 'none';
+            document.getElementById('rules').style.display = 'block';
+       }
     </script>
 </body>
 </html>
